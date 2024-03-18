@@ -46,8 +46,6 @@ Eval_Test:
   b     Eval_Test
   .size  Reset_Handler, .-Reset_Handler
 
-
-
   .type     Init_Mem, %function
 Init_Mem:
   PUSH    {R4-R7}
