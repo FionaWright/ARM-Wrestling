@@ -2,7 +2,7 @@
 
 Team: ArmWrestling  
 Finn Wright (CloudyUnity)  
-Emma [FILL IN HERE]  
+Emma b00rg
 Angelos [FILL IN HERE]  
 
 ## HARDWARE
