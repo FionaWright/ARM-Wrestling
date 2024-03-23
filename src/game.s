@@ -21,12 +21,23 @@
 Main:
   BL Setup
 
-.LMain_IdleLoop:
-  NOP
-  B .LMain_IdleLoop
+  @ Initialise the first countdown
+  LDR     R4, =v_blink_countdown
+  LDR     R5, =BLINK_PERIOD
+  STR     R5, [R4]  
 
-End_Main:
-  BX LR
+  @ Initialise buttonCount to zero
+  LDR   R4, =v_button_count
+  MOV   R5, #0                        
+  STR   R5, [R4]      
+
+@ Main Rendering loop
+@ Clear all LEDs
+@ Loop over all obstacles and turn on correct LEDs
+@ PlayerRender() to draw Player and check for death
+.LRenderFrameLoop:
+  NOP
+  B .LRenderFrameLoop
 
   .type  SysTick_Handler, %function
 SysTick_Handler:
@@ -43,6 +54,7 @@ SysTick_Handler:
   B     .LendIfDelay                
 
 @ (!) This label is entered when the SysTick timer has completed
+@ Cause 1 tick to occur on every obstacle. Some obstacles may move/progress every N ticks 
 .L_SysTick_Handler_CountdownFinished:
 
   LDR     R4, =GPIOE_ODR              @   Invert LD3
@@ -60,8 +72,8 @@ SysTick_Handler:
   STR     R5, [R4]                  
   POP  {R4, R5, PC}
 
-@ External interrupt line 0 interrupt handler
-@   (count button presses)
+@ (!) Entered when button1 is pressed
+@ PlayerMove()
   .type  EXTI0_IRQHandler, %function
 EXTI0_IRQHandler:
   PUSH  {R4,R5,LR}
@@ -76,10 +88,25 @@ EXTI0_IRQHandler:
   STR   R5, [R4]                    
   POP  {R4,R5,PC}
 
+@ Set LEDs based on v_led_states
+SetLEDs:
+  BX LR
+
+@ Set player position to 0
+@ Spawn obstacles
+StartLevel:
+  BX LR
+
   .section .data
 v_button_count:
   .space  4
 v_blink_countdown:
   .space  4
+v_led_states:
+  .space 4
+v_player_position:
+  .space 4
+v_level:
+  .space 4
 
   .end
