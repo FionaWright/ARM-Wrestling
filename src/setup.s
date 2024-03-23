@@ -35,7 +35,7 @@ Setup:
   STR     R5, [R4]                    @ Write 
 
   @ Initialise the first countdown
-  LDR     R4, =blink_countdown
+  LDR     R4, =v_blink_countdown
   LDR     R5, =BLINK_PERIOD
   STR     R5, [R4]  
 
@@ -69,7 +69,7 @@ Setup:
   @
 
   @ Initialise count to zero
-  LDR   R4, =button_count             @ count = 0;
+  LDR   R4, =v_button_count             @ count = 0;
   MOV   R5, #0                        @
   STR   R5, [R4]                      @
 
