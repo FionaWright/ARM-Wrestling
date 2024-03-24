@@ -9,62 +9,59 @@
   .global Main
   .global SysTick_Handler
   .global EXTI0_IRQHandler
-  .global v_blink_countdown
-  .global v_button_count
+
+  .global v_player_position
+  .global v_led_states
+  .global v_level
 
   .include "./src/definitions.s"
-
-  .equ    BLINK_PERIOD, 250
 
   .section .text
 
 Main:
+  LDR R4, =v_tick_rate_counter        @ tickRateCounter = 80ms
+  MOV R5, #10                         @ 8ms * 10 = 80ms
+  STR R5, [R4]                        @ This needs testing I'm not sure if this is actually 80ms
+
   BL Setup
-
-  @ Initialise the first countdown
-  LDR     R4, =v_blink_countdown
-  LDR     R5, =BLINK_PERIOD
-  STR     R5, [R4]  
-
-  @ Initialise buttonCount to zero
-  LDR   R4, =v_button_count
-  MOV   R5, #0                        
-  STR   R5, [R4]      
 
 @ Main Rendering loop
 @ Clear all LEDs
 @ Loop over all obstacles and turn on correct LEDs
 @ PlayerRender() to draw Player and check for death
 .LRenderFrameLoop:
-  NOP
+  LDR R4, =v_led_states               @ clear(ledStates);
+  MOV R5, #0  
+  STR R5, [R4]
+
+  @ Draw obstacles
+
+  BL PlayerFrame
+
+  BL SetLEDs
+
   B .LRenderFrameLoop
 
   .type  SysTick_Handler, %function
 SysTick_Handler:
   PUSH  {R4, R5, LR}
 
-  LDR   R4, =v_blink_countdown        @ if (countdown == 0):
+  LDR   R4, =v_tick_rate_counter      @ if (tickRateCounter == 0):
   LDR   R5, [R4]                      @   CountdownFinished();
   CMP   R5, #0                      
   BEQ   .L_SysTick_Handler_CountdownFinished                  
 
-  SUB   R5, R5, #1                    @ countdown--;
+  SUB   R5, R5, #1                    @ tickRateCounter--;
   STR   R5, [R4]                    
 
   B     .LendIfDelay                
 
 @ (!) This label is entered when the SysTick timer has completed
-@ Cause 1 tick to occur on every obstacle. Some obstacles may move/progress every N ticks 
-.L_SysTick_Handler_CountdownFinished:
+@ Cause 1 tick to occur on every obstacle
+.L_SysTick_Handler_CountdownFinished:               
 
-  LDR     R4, =GPIOE_ODR              @   Invert LD3
-  LDR     R5, [R4]                  
-  EOR     R5, #(0b1<<(LD3_PIN))       @   GPIOE_ODR ^= (1<<LD3_PIN);
-  STR     R5, [R4]                  
-
-  LDR     R4, =v_blink_countdown      @   countdown = BLINK_PERIOD;
-  LDR     R5, =BLINK_PERIOD         
-  STR     R5, [R4]                  
+  @ Code goes here    
+  @ Move obstacles forward by 1 tick         
 
 .LendIfDelay:                       
   LDR     R4, =SCB_ICSR               @ Clear (acknowledge) the interrupt
@@ -78,10 +75,7 @@ SysTick_Handler:
 EXTI0_IRQHandler:
   PUSH  {R4,R5,LR}
 
-  LDR   R4, =v_button_count           @ buttonCount++;
-  LDR   R5, [R4]                    
-  ADD   R5, R5, #1                  
-  STR   R5, [R4]                    
+  BL PlayerMove                       @ PlayerMove();       
 
   LDR   R4, =EXTI_PR                  @ Clear (acknowledge) the interrupt
   MOV   R5, #(1<<0)                 
@@ -90,18 +84,28 @@ EXTI0_IRQHandler:
 
 @ Set LEDs based on v_led_states
 SetLEDs:
-  BX LR
+  PUSH {R4-R8, LR}
 
-@ Set player position to 0
-@ Spawn obstacles
-StartLevel:
-  BX LR
+  LDR R4, =GPIOE_ODR                  @ int currentVal = GPIOE_ODR;
+  LDR R5, [R4]
+
+  LDR R6, =v_led_states               @ ledStates <<= 8;
+  LDR R7, [R6]
+  LSL R7, R7, #8
+
+  MOV R8, #0b11111111                 @ int mask = 0xFF << 8
+  LSL R8, R8, #8
+
+  BIC R5, R5, R8                      @ clearBits(currentVal, mask);
+  ORR R5, R5, R7                      @ setBits(currentVal, ledStates)
+
+  STR R5, [R4]                        @ GPIOE_ODR = currentVal;
+
+  POP {R4-R8, PC}
 
   .section .data
-v_button_count:
-  .space  4
-v_blink_countdown:
-  .space  4
+v_tick_rate_counter:
+  .space 4
 v_led_states:
   .space 4
 v_player_position:
