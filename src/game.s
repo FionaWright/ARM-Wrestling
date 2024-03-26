@@ -61,7 +61,8 @@ SysTick_Handler:
 .L_SysTick_Handler_CountdownFinished:               
 
   @ Code goes here    
-  @ Move obstacles forward by 1 tick         
+  @ Move obstacles forward by 1 tick        
+  @ Reset tick rate counter 
 
 .LendIfDelay:                       
   LDR     R4, =SCB_ICSR               @ Clear (acknowledge) the interrupt
@@ -88,7 +89,6 @@ SetLEDs:
 
   LDR R4, =GPIOE_ODR                  @ int currentVal = GPIOE_ODR;
   LDR R5, [R4]
-  @EOR R5, #(0b1 << (LD4_PIN))
 
   LDR R6, =v_led_states               @ ledStates <<= 8;
   LDR R7, [R6]

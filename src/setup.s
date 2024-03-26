@@ -14,17 +14,14 @@
 Setup:
   PUSH {R4-R5, LR}
 
-  @ Prepare GPIO Port E Pin 9 for output (LED LD3)
-  @ We'll blink LED LD3 (the orange LED)
-
   @ Enable GPIO port E by enabling its clock
   LDR     R4, =RCC_AHBENR
   LDR     R5, [R4]
   ORR     R5, R5, #(0b1 << (RCC_AHBENR_GPIOEEN_BIT))
   STR     R5, [R4]
 
-  @ Configure LD3 for output
-  @   by setting bits 27:26 of GPIOE_MODER to 01 (GPIO Port E Mode Register)
+  @ Configure LED for output
+  @   by setting bits of GPIOE_MODER to 01 (GPIO Port E Mode Register)
   @   (by BIClearing then ORRing)
   LDR     R4, =GPIOE_MODER
   LDR     R5, [R4]                    @ Read ...
