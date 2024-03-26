@@ -32,7 +32,7 @@ Main:
 .LRenderFrameLoop:
   LDR R4, =v_led_states               @ clear(ledStates);
   MOV R5, #0  
-  STR R5, [R4]
+  STR R5, [R4]  
 
   @ Draw obstacles
 
@@ -88,6 +88,7 @@ SetLEDs:
 
   LDR R4, =GPIOE_ODR                  @ int currentVal = GPIOE_ODR;
   LDR R5, [R4]
+  @EOR R5, #(0b1 << (LD4_PIN))
 
   LDR R6, =v_led_states               @ ledStates <<= 8;
   LDR R7, [R6]

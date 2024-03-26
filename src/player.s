@@ -17,13 +17,13 @@ PlayerMove:
   LDR R4, =v_player_position            @ int playerPos = playerPosition;
   LDR R5, [R4]
 
-  LSL R5, R5, #1                        @ playerPos <<= 1;
+  ADD R5, R5, #1
   STR R5, [R4]
 
-  CMP R5, #(0b1 << 8)                   @ if (bit(playerPos) == 8)
-  BEQ .LPlayerWin                       @   PlayerWin();
+  CMP R5, #8                            @ if (bit(playerPos) == 8)
+  BGE .LPlayerWin                       @   PlayerWin();
 
-  POP {R4-R7, LR}
+  POP {R4-R7, PC}
 
 @ Player won level. Increase v_level and reset position
 .LPlayerWin:
@@ -37,11 +37,10 @@ PlayerMove:
 
   POP {R4-R7, LR}
 
-
 @ Set player LED (ORR, v_led_states)
 @ If LED is already lit up then PlayerDead()
 PlayerFrame:
-  PUSH {R4-R6, LR}
+  PUSH {R4-R7, LR}
 
   LDR R4, =v_player_position            @ int playerBit = 1 << playerPosition;
   LDR R4, [R4]  
@@ -51,13 +50,14 @@ PlayerFrame:
   LDR R5, =v_led_states                 @ int states = ledStates;
   LDR R6, [R5]
  
-  TST R4, R6                            @ if (overlap(playerBit, states)):
-  BEQ .LPlayerDead                      @   PlayerDead();
+  AND R7, R4, R6
+  CMP R7, #0                            @ if (overlap(playerBit, states)):
+  BNE .LPlayerDead                      @   PlayerDead();
  
   ORR R4, R4, R6                        @ states |= playerBit;
   STR R4, [R5]
  
-  POP {R4-R6, PC}
+  POP {R4-R7, PC}
 
 @ Player died. Set position back to 0
 @ Set first LED on
@@ -70,6 +70,6 @@ PlayerFrame:
   ORR R6, R6, #0b1
   STR R6, [R5]
 
-  POP {R4-R6, PC}
+  POP {R4-R7, PC}
 
   .end
