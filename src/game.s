@@ -59,11 +59,35 @@ SysTick_Handler:
 @ (!) This label is entered when the SysTick timer has completed
 @ Cause 1 tick to occur on every obstacle
 .L_SysTick_Handler_CountdownFinished:               
+  PUSH {R0 - R6, LR}
 
-  @ Code goes here    
-  @ Move obstacles forward by 1 tick        
-  @ Reset tick rate counter 
+  LDR R4, =v_patternIndex @ Load the index of the patter
+  STR R4, [R4]
+  MOV R4, R4, LSL #3    @ We shift the pattern index to account for the size of levels
 
+  LDR R5, =v_levels     // R6 = current frame obstacle patter
+  LDRB R6, [R5, R4]
+
+  CMP R5, #0xffffffff       @check if we reached the end
+    BEQ .LrepeatLevelFrame
+.LsetObstacles:
+  LDR R7, =v_led_states
+  STR R6, [R7]    
+
+  LDR R4, =v_tick_rate_counter
+  MOV R5, #6000
+  LDR R5, [R4]
+
+  POP {R0 - R6, PC}
+
+.LrepeatLevelFrame:
+
+  LDR R4, =v_patternIndex @ Load the index of the patter and set it to 0
+  MOV R6, #0
+  STR R6, [R4]
+  LDRB R6, [R5, R4]
+
+  B .LsetObstacles
 .LendIfDelay:                       
   LDR     R4, =SCB_ICSR               @ Clear (acknowledge) the interrupt
   LDR     R5, =SCB_ICSR_PENDSTCLR   
@@ -113,22 +137,24 @@ v_player_position:
   .space 4
 v_level:
   .space 4
+v_patternIndex:
+  .space 4
 v_levels:
-  .word 0b00001000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 1
-  .word 0b00010100, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0                        @ level 2
-  .word 0b01000000, 0b00100000, 0b00010000, 0b00010000, 0b00001000, 0b00000100, 0b00000010,      @ level 3
+  .byte 0b00001000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 1
+  .byte 0b00010100, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0                        @ level 2
+  .byte 0b01000000, 0b00100000, 0b00010000, 0b00010000, 0b00001000, 0b00000100, 0b00000010,      @ level 3
     0b00000001, -1, 0, 0, 0, 0, 0, 0, 0 
-  .word 0b00011100, 0b00000000, 0b00000000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0,  @ level 4
+  .byte 0b00011100, 0b00000000, 0b00000000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0,  @ level 4
     0, 0
-  . word 0b00111110, 0b00000000, 0b00000000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, @ level 5
+  .byte 0b00111110, 0b00000000, 0b00000000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, @ level 5
     0, 0
-  .word 0b00100100, 0b00010010, 0b01001001, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 6
-  .word 0b00111111, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,      @ level 7
+  .byte 0b00100100, 0b00010010, 0b01001001, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 6
+  .byte 0b00111111, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,      @ level 7
     -1, 0, 0, 0, 0, 0, 0, 0, 0   
-  .word 0b00100010, 0b00001000, 0b00010100, 0b00000000, 0b01000001, -1, 0, 0, 0, 0, 0, 0, 0, 0,  @ level 8
+  .byte 0b00100010, 0b00001000, 0b00010100, 0b00000000, 0b01000001, -1, 0, 0, 0, 0, 0, 0, 0, 0,  @ level 8
     0, 0
-  .word 0b01010101, 0b00000000, 0b00101010, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 9
-  .word 0b01000000, 0b00000000, 0b00000001, 0b01000001, 0b01000011, 0b01000101, 0b01010101,      @ level 10 
+  .byte 0b01010101, 0b00000000, 0b00101010, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 9
+  .byte 0b01000000, 0b00000000, 0b00000001, 0b01000001, 0b01000011, 0b01000101, 0b01010101,      @ level 10 
     0b01001111, 0b01100101, 0b01000101, 0b01110011, 0b01111001, 0b01111101, 0b01111100, 0b01111110
 
 
