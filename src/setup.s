@@ -103,4 +103,8 @@ Setup:
   MOV     R5, #(1<<6)
   STR     R5, [R4]
 
+  @ Ensure the pattern index for levels is set to 0
+  LDR     R4, =v_patternIndex
+  STR     #0, [R4]
+
   POP {R4-R5, PC}
