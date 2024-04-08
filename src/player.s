@@ -27,7 +27,7 @@ PlayerMove:
 
 @ Player won level. Increase v_level and reset position
 .LPlayerWin:
-  LDR R6, =v_level                      @ level++;
+  LDR R6, =v_levelIndex                 @ level++;
   LDR R7, [R6]
   ADD R7, R7, #1
   STR R7, [R6]
