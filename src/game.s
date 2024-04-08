@@ -13,6 +13,7 @@
   .global v_player_position
   .global v_led_states
   .global v_levelIndex
+  .global v_isGameCompleted
 
   .include "./src/definitions.s"
 
@@ -158,7 +159,7 @@ v_levelIndex:
 v_patternIndex:
   .space 4
 v_isGameCompleted:
-  .space 4
+  .word 0
 
   @ MSB = Last "Win" LED
   @ LSB = Player Start LED (DO NOT SET TO 1)
@@ -181,9 +182,5 @@ v_levels:
   .byte 0b00010000, 0b00100000, 0b00001000, 0b01000000, 0b00000100, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT
   @ WIN STATE
   .byte 0b10001000, 0b00000101, 0b00000010, 0b00000101, 0b10001000, 0b01010000, 0b00100000, 0b01010000, 0b10001000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT
-
-@ Win condition flag
-v_isGameCompleted:
-  .word 0
 
   .end

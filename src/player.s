@@ -44,15 +44,14 @@ PlayerMove:
   MOV R5, #0                            @ playerPosition = 0;
   STR R5, [R4]
 
-  POP {R4-R7, LR}
+  POP {R4-R7, PC}
 
 @ Activates win state animation when game is over
 .LPlayerCompletedGame:
-  PUSH {R4-R5, LR}
   LDR R4, =v_isGameCompleted
   MOV R5, #1
   STR R5, [R4]
-  POP {R4-R5, PC}
+  POP {R4-R7, PC}
 
 @ Set player LED (ORR, v_led_states)
 @ If LED is already lit up then PlayerDead()
