@@ -37,6 +37,10 @@ PlayerMove:
 
   POP {R4-R7, LR}
 
+@ Activates win state animation when game is over
+.LPlayerCompletedGame:
+  POP {R4-R7, LR}
+
 @ Set player LED (ORR, v_led_states)
 @ If LED is already lit up then PlayerDead()
 PlayerFrame:

@@ -22,9 +22,9 @@
   .equ END_REPEAT, 0xFF
 
 Main:
-  LDR R4, =v_tick_rate_counter        @ tickRateCounter = 80ms
-  LDR R5, =TICK_COOLDOWN                         @ 8ms * 10 = 80ms
-  STR R5, [R4]                        @ This needs testing I'm not sure if this is actually 80ms
+  LDR R4, =v_tick_rate_counter        @ tickRateCounter = TICK_COOLDOWN
+  LDR R5, =TICK_COOLDOWN              
+  STR R5, [R4]                        
 
   @ Ensure the pattern index for levels is set to 0
   LDR     R4, =v_patternIndex
@@ -157,9 +157,11 @@ v_levelIndex:
   .space 4
 v_patternIndex:
   .space 4
+v_isGameCompleted:
+  .space 4
 
   @ MSB = Last "Win" LED
-  @ LSB = Player Start LED (DO NOT SET TRUE)
+  @ LSB = Player Start LED (DO NOT SET TO 1)
 v_levels:  
   @ Single Dot Blinker (Easy)
   .byte 0b00001000, 0b00000000, 0b00000000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT               
