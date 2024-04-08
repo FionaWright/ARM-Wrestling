@@ -75,7 +75,7 @@ SysTick_Handler:                                      @ void onTick() {
 
   LDR R6, =v_levelIndex                               @   levelColumn = levelIndex * LEVEL_MATRIX_COLUMNS;
   LDR R6, [R6]
-  LDR R6, =LEVEL_MATRIX_COLUMNS  
+  LDR R5, =LEVEL_MATRIX_COLUMNS  
   MUL R6, R6, R5
 
   LDR R4, =v_patternIndex                             @   levelRow = patternIndex;
@@ -125,7 +125,7 @@ SetLEDs:                                              @ void SetLEDs() {
   LDR R7, [R6]
   LSL R7, R7, #8
 
-  MOV R8, #0xFF                                       @   int mask = 0xFF << 8
+  MOV R8, #0b11111111                                 @   int mask = 0xFF << 8
   LSL R8, R8, #8
 
   BIC R5, R5, R8                                      @   clearBits(currentVal, mask);
