@@ -12,16 +12,24 @@
 
   .global v_player_position
   .global v_led_states
-  .global v_level
+  .global v_levelIndex
 
   .include "./src/definitions.s"
 
   .section .text
 
+  .equ TICK_COOLDOWN, 500
+  .equ END_REPEAT, 0xFF
+
 Main:
   LDR R4, =v_tick_rate_counter        @ tickRateCounter = 80ms
-  MOV R5, #10                         @ 8ms * 10 = 80ms
+  LDR R5, =TICK_COOLDOWN                         @ 8ms * 10 = 80ms
   STR R5, [R4]                        @ This needs testing I'm not sure if this is actually 80ms
+
+  @ Ensure the pattern index for levels is set to 0
+  LDR     R4, =v_patternIndex
+  MOV     R5, #0
+  STR     R5, [R4]
 
   BL Setup
 
@@ -35,6 +43,20 @@ Main:
   STR R5, [R4]  
 
   @ Draw obstacles
+  LDR R5, =v_levelIndex
+  LDR R5, [R5]
+  MOV R6, #16  
+  MUL R5, R5, R6
+
+  LDR R6, =v_patternIndex
+  LDR R6, [R6]
+  ADD R5, R5, R6
+
+  LDR R4, =v_levels
+  LDRB R5, [R4, R5]
+
+  LDR R4, =v_led_states
+  STRB R5, [R4]
 
   BL PlayerFrame
 
@@ -44,7 +66,7 @@ Main:
 
   .type  SysTick_Handler, %function
 SysTick_Handler:
-  PUSH  {R4, R5, LR}
+  PUSH  {R4-R6, LR}
 
   LDR   R4, =v_tick_rate_counter      @ if (tickRateCounter == 0):
   LDR   R5, [R4]                      @   CountdownFinished();
@@ -58,41 +80,37 @@ SysTick_Handler:
 
 @ (!) This label is entered when the SysTick timer has completed
 @ Cause 1 tick to occur on every obstacle
-.L_SysTick_Handler_CountdownFinished:               
-  PUSH {R0 - R6, LR}
-
-  LDR R4, =v_patternIndex @ Load the index of the patter
-  STR R4, [R4]
-  MOV R4, R4, LSL #3    @ We shift the pattern index to account for the size of levels
-
-  LDR R5, =v_levels     // R6 = current frame obstacle patter
-  LDRB R6, [R5, R4]
-
-  CMP R5, #0xffffffff       @check if we reached the end
-    BEQ .LrepeatLevelFrame
-.LsetObstacles:
-  LDR R7, =v_led_states
-  STR R6, [R7]    
-
+.L_SysTick_Handler_CountdownFinished:      
   LDR R4, =v_tick_rate_counter
-  MOV R5, #6000
-  LDR R5, [R4]
+  LDR R5, =TICK_COOLDOWN
+  STR R5, [R4]
 
-  POP {R0 - R6, PC}
+  LDR R6, =v_levelIndex
+  LDR R6, [R6]
+  MOV R5, #16
+  MUL R6, R6, R5
 
-.LrepeatLevelFrame:
+  LDR R4, =v_patternIndex             @ Load the index of the pattern
+  LDRB R5, [R4]
+  ADD R5, R5, #1
+  STRB R5, [R4]
+  ADD R5, R5, R6
+
+  LDR R4, =v_levels     
+  LDRB R4, [R4, R5]
+
+  CMP R4, #0xFF                       @check if we reached the end
+  BNE .LendIfDelay  
 
   LDR R4, =v_patternIndex @ Load the index of the patter and set it to 0
   MOV R6, #0
-  STR R6, [R4]
-  LDRB R6, [R5, R4]
+  STRB R6, [R4]
 
-  B .LsetObstacles
 .LendIfDelay:                       
   LDR     R4, =SCB_ICSR               @ Clear (acknowledge) the interrupt
   LDR     R5, =SCB_ICSR_PENDSTCLR   
   STR     R5, [R4]                  
-  POP  {R4, R5, PC}
+  POP  {R4-R6, PC}
 
 @ (!) Entered when button1 is pressed
 @ PlayerMove()
@@ -135,27 +153,31 @@ v_led_states:
   .space 4
 v_player_position:
   .space 4
-v_level:
+v_levelIndex:
   .space 4
 v_patternIndex:
   .space 4
-v_levels:
-  .byte 0b00001000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 1
-  .byte 0b00010100, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0                        @ level 2
-  .byte 0b01000000, 0b00100000, 0b00010000, 0b00010000, 0b00001000, 0b00000100, 0b00000010,      @ level 3
-    0b00000001, -1, 0, 0, 0, 0, 0, 0, 0 
-  .byte 0b00011100, 0b00000000, 0b00000000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0,  @ level 4
-    0, 0
-  .byte 0b00111110, 0b00000000, 0b00000000, 0b00000000, 0b00000000, -1, 0, 0, 0, 0, 0, 0, 0, 0, @ level 5
-    0, 0
-  .byte 0b00100100, 0b00010010, 0b01001001, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 6
-  .byte 0b00111111, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000, 0b00000000,      @ level 7
-    -1, 0, 0, 0, 0, 0, 0, 0, 0   
-  .byte 0b00100010, 0b00001000, 0b00010100, 0b00000000, 0b01000001, -1, 0, 0, 0, 0, 0, 0, 0, 0,  @ level 8
-    0, 0
-  .byte 0b01010101, 0b00000000, 0b00101010, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0               @ level 9
-  .byte 0b01000000, 0b00000000, 0b00000001, 0b01000001, 0b01000011, 0b01000101, 0b01010101,      @ level 10 
-    0b01001111, 0b01100101, 0b01000101, 0b01110011, 0b01111001, 0b01111101, 0b01111100, 0b01111110
 
+  @ MSB = Last "Win" LED
+  @ LSB = Player Start LED (DO NOT SET TRUE)
+v_levels:  
+  @ Single Dot Blinker (Easy)
+  .byte 0b00001000, 0b00000000, 0b00000000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT               
+  @ Alternating Dots (Easy)
+  .byte 0b00001000, 0b01000000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT               
+  @ Scrolling Dot (Easy)
+  .byte 0b00000010, 0b00000100, 0b00001000, 0b00010000, 0b00100000, 0b01000000, 0b10000000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT   
+  @ 3 Dot Blinkers (Medium)
+  .byte 0b01010100, 0b00000000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT  
+  @ Odds n' Evens (Medium)
+  .byte 0b01010100, 0b00000000, 0b10101010, 0b00000000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT               
+  @ Fit the gaps (Medium)
+  .byte 0b10110110, 0b00000000, 0b10110110, 0b00000000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT
+  @ 2 Scrolling Dots (Hard)
+  .byte 0b11110010, 0b11100110, 0b11001110, 0b10011110, 0b00111110, 0b01111100, 0b11111000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT
+  @ Irregular ZigZags (Hard)
+  .byte 0b00010000, 0b00100000, 0b00001000, 0b01000000, 0b00000100, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT
+  @ WIN STATE
+  .byte 0b10001000, 0b00000101, 0b00000010, 0b00000101, 0b10001000, 0b01010000, 0b00100000, 0b01010000, 0b10001000, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT, END_REPEAT
 
   .end
