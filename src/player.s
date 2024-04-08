@@ -27,6 +27,11 @@ PlayerMove:
 
 @ Player won level. Increase v_level and reset position
 .LPlayerWin:
+  PUSH  {R4-R10}
+  LDR R9, =v_isGameCompleted
+  MOV R10, #1
+  STR R10, [R9]
+  
   LDR R6, =v_levelIndex                 @ level++;
   LDR R7, [R6]
   ADD R7, R7, #1
@@ -35,7 +40,7 @@ PlayerMove:
   MOV R5, #0                            @ playerPosition = 0;
   STR R5, [R4]
 
-  POP {R4-R7, LR}
+  POP {R4-R10, LR}
 
 @ Activates win state animation when game is over
 .LPlayerCompletedGame:
