@@ -14,6 +14,12 @@
 @ If new position is 8 then PlayerWin()
 PlayerMove:
   PUSH {R4-R7, LR}
+
+  LDR R4, =v_isGameCompleted          @ Check if game is completed
+  LDR R5, [R4]
+  CMP R5, #1
+  BEQ .LEndPlayerMove      
+
   LDR R4, =v_player_position            @ int playerPos = playerPosition;
   LDR R5, [R4]
 
@@ -22,34 +28,41 @@ PlayerMove:
 
   CMP R5, #8                            @ if (bit(playerPos) == 8)
   BGE .LPlayerWin                       @   PlayerWin();
-
+.LEndPlayerMove:
   POP {R4-R7, PC}
 
 @ Player won level. Increase v_level and reset position
 .LPlayerWin:
-  PUSH  {R4-R10}
-  LDR R9, =v_isGameCompleted
-  MOV R10, #1
-  STR R10, [R9]
-  
   LDR R6, =v_levelIndex                 @ level++;
   LDR R7, [R6]
   ADD R7, R7, #1
   STR R7, [R6]
 
+  CMP R7, #8                            @ if level == 8: 
+  BGE .LPlayerCompletedGame             @   playerCompletedGame
+
   MOV R5, #0                            @ playerPosition = 0;
   STR R5, [R4]
 
-  POP {R4-R10, LR}
+  POP {R4-R7, LR}
 
 @ Activates win state animation when game is over
 .LPlayerCompletedGame:
-  POP {R4-R7, LR}
+  PUSH {R4-R5, LR}
+  LDR R4, =v_isGameCompleted
+  MOV R5, #1
+  STR R5, [R4]
+  POP {R4-R5, PC}
 
 @ Set player LED (ORR, v_led_states)
 @ If LED is already lit up then PlayerDead()
 PlayerFrame:
   PUSH {R4-R7, LR}
+
+  LDR R4, =v_isGameCompleted            @ if (gameOver):
+  LDR R5, [R4]                          @   break
+  CMP R5, #1
+  BEQ .LEndPlayerFrame                  @ 
 
   LDR R4, =v_player_position            @ int playerBit = 1 << playerPosition;
   LDR R4, [R4]  
@@ -66,6 +79,7 @@ PlayerFrame:
   ORR R4, R4, R6                        @ states |= playerBit;
   STR R4, [R5]
  
+.LEndPlayerFrame:
   POP {R4-R7, PC}
 
 @ Player died. Set position back to 0
