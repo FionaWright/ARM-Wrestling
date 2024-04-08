@@ -9,15 +9,10 @@
 
   .include "./src/definitions.s"
 
-  .equ    BLINK_PERIOD, 250
-
   .section .text
 
 Setup:
-  PUSH {R4-R5}
-
-  @ Prepare GPIO Port E Pin 9 for output (LED LD3)
-  @ We'll blink LED LD3 (the orange LED)
+  PUSH {R4-R5, LR}
 
   @ Enable GPIO port E by enabling its clock
   LDR     R4, =RCC_AHBENR
@@ -25,25 +20,41 @@ Setup:
   ORR     R5, R5, #(0b1 << (RCC_AHBENR_GPIOEEN_BIT))
   STR     R5, [R4]
 
-  @ Configure LD3 for output
-  @   by setting bits 27:26 of GPIOE_MODER to 01 (GPIO Port E Mode Register)
+  @ Configure LED for output
+  @   by setting bits of GPIOE_MODER to 01 (GPIO Port E Mode Register)
   @   (by BIClearing then ORRing)
   LDR     R4, =GPIOE_MODER
   LDR     R5, [R4]                    @ Read ...
   BIC     R5, #(0b11<<(LD3_PIN*2))    @ Modify ...
   ORR     R5, #(0b01<<(LD3_PIN*2))    @ write 01 to bits 
-  STR     R5, [R4]                    @ Write 
 
-  @ Initialise the first countdown
-  LDR     R4, =blink_countdown
-  LDR     R5, =BLINK_PERIOD
-  STR     R5, [R4]  
+  BIC     R5, #(0b11<<(LD4_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD4_PIN*2))    @ write 01 to bits 
+
+  BIC     R5, #(0b11<<(LD5_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD5_PIN*2))    @ write 01 to bits 
+
+  BIC     R5, #(0b11<<(LD6_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD6_PIN*2))    @ write 01 to bits 
+
+  BIC     R5, #(0b11<<(LD7_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD7_PIN*2))    @ write 01 to bits 
+
+  BIC     R5, #(0b11<<(LD8_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD8_PIN*2))    @ write 01 to bits 
+
+  BIC     R5, #(0b11<<(LD9_PIN*2))    @ Modify ...
+  ORR     R5, #(0b01<<(LD9_PIN*2))    @ write 01 to bits 
+  
+  BIC     R5, #(0b11<<(LD10_PIN*2))   @ Modify ...
+  ORR     R5, #(0b01<<(LD10_PIN*2))   @ write 01 to bits 
+  STR     R5, [R4]                    @ Write 
 
   @ Configure SysTick Timer to generate an interrupt every 1ms
 
   LDR     R4, =SCB_ICSR               @ Clear any pre-existing interrupts
-  LDR     R5, =SCB_ICSR_PENDSTCLR     @
-  STR     R5, [R4]                    @
+  LDR     R5, =SCB_ICSR_PENDSTCLR     
+  STR     R5, [R4]                    
 
   LDR     R4, =SYSTICK_CSR            @ Stop SysTick timer
   LDR     R5, =0                      @   by writing 0 to CSR
@@ -51,7 +62,7 @@ Setup:
   
   LDR     R4, =SYSTICK_LOAD           @ Set SysTick LOAD for 1ms delay
   LDR     R5, =7999                   @ Assuming 8MHz clock
-  STR     R5, [R4]                    @ 
+  STR     R5, [R4]                    
 
   LDR     R4, =SYSTICK_VAL            @   Reset SysTick internal counter to 0
   LDR     R5, =0x1                    @     by writing any value
@@ -62,19 +73,12 @@ Setup:
   STR     R5, [R4]                    @     set TICKINT (bit 1) to 1 to enable interrupts
                                       @     set ENABLE (bit 0) to 1
 
-
-  @
   @ Prepare external interrupt Line 0 (USER pushbutton)
-  @ We'll count the number of times the button is pressed
-  @
-
-  @ Initialise count to zero
-  LDR   R4, =button_count             @ count = 0;
-  MOV   R5, #0                        @
-  STR   R5, [R4]                      @
-
+  @ We'll count the number of times the button is pressed                
+  
   @ Configure USER pushbutton (GPIO Port A Pin 0 on STM32F3 Discovery
   @   kit) to use the EXTI0 external interrupt signal
+
   @ Determined by bits 3..0 of the External Interrrupt Control
   @   Register (EXTIICR)
   LDR     R4, =SYSCFG_EXTIICR1
@@ -99,5 +103,4 @@ Setup:
   MOV     R5, #(1<<6)
   STR     R5, [R4]
 
-  POP {R4-R5}
-  BX LR
+  POP {R4-R5, PC}
