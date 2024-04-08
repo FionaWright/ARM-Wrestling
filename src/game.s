@@ -13,6 +13,7 @@
   .global v_player_position
   .global v_led_states
   .global v_levelIndex
+  .global v_isGameCompleted
 
   .include "./src/definitions.s"
 
@@ -158,7 +159,7 @@ v_levelIndex:
 v_patternIndex:
   .space 4
 v_isGameCompleted:
-  .space 4
+  .word 0
 
   @ MSB = Last "Win" LED
   @ LSB = Player Start LED (DO NOT SET TO 1)
