@@ -10,7 +10,6 @@
 
   .section .text
 
-  BL Setup                                            @tst
 PlayerMove:                                           @ void PlayerMove() {    
   PUSH {R4-R7, LR}
 
