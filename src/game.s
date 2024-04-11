@@ -1,5 +1,9 @@
 # PASTE LINK TO TEAM VIDEO BELOW
-# test
+# https://media.heanet.ie/page/0ddbccaca0a744bdb8d30f2cfe4e3b9f
+
+# Finn Wright (Worked on Framework, Player)
+# Emma Burges (Worked on Level Design, Video, Win screen)
+# Angelos Eleftheriou (Worked on Level Design, Obstacles)
 
   .syntax unified
   .cpu cortex-m4
