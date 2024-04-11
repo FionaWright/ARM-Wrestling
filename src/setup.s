@@ -73,9 +73,7 @@ Setup:
   STR     R5, [R4]                    @     set TICKINT (bit 1) to 1 to enable interrupts
                                       @     set ENABLE (bit 0) to 1
 
-  @ Prepare external interrupt Line 0 (USER pushbutton)
-  @ We'll count the number of times the button is pressed                
-  
+  @ Prepare external interrupt Line 0 (USER pushbutton)          
   @ Configure USER pushbutton (GPIO Port A Pin 0 on STM32F3 Discovery
   @   kit) to use the EXTI0 external interrupt signal
 
