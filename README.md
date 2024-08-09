@@ -5,7 +5,17 @@ Finn Wright (CloudyUnity)
 Emma (b00rg)
 Angelos (AngelosLeEpic)
 
-## HARDWARE
+## About
+
+This was a project where we had to create a videogame on a small microcontroller device.  
+The device had 1 button input and 8 LEDs in a ring shape, each with a fixed corresponding colour.  
+We decided to make a game where you have to do a loop around the ring without getting hit by various obstacles.  
+We had 10 levels in the game.  
+We got full marks!
+
+![WhatsApp Image 2024-04-22 at 14 29 52_a30745fe](https://github.com/user-attachments/assets/a17ecc1a-98c4-44f5-9be6-dc8cdb0ccba4)
+
+## Hardware Info
 
 We're using Port E  
 Starting from North-West going clockwise the LED indices are:  
@@ -24,7 +34,6 @@ Every Render Frame:
     Clear all LEDs		 
     Foreach obstacle:  
         Turn on obstacle LEDs   
-        (Maybe they should flash?)  
     Turn on player LED  
         If LED already on then player has collided and died  
 
