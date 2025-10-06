@@ -1,7 +1,7 @@
 # README
 
 Team: ArmWrestling  
-Finn Wright (CloudyUnity)  
+Fiona Wright (FionaWright)  
 Emma (b00rg)
 Angelos (AngelosLeEpic)
 
